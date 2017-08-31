@@ -17,6 +17,7 @@ servo_horn_radius = 7.5*mm;
 tendon_insertion_diameter_hole = 0.8*mm;
 tendon_insertion_diameter_in = 3*mm;
 tendon_insertion_diameter_out = tendon_insertion_diameter_in + 0.45*mm;
+single_center_link_threshold = 6*board_thickness;
 clearance_margin = 1*mm;
 leg_base_inner_width = 2*13.3*mm;
 joint_leg_descriptor = [
@@ -56,7 +57,7 @@ lower_leg_descriptor = [
     "hinge", // joint_type
     0*mm, // servo_joint_distance
     15*mm, // start_thickness
-    5*mm, // end_thickness
+    6*mm, // end_thickness
     -30 // turn_bias
 ];
 

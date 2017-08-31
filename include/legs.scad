@@ -147,7 +147,7 @@ module generic_leg_skeleton_center_link(leg_descriptor) {
         ? effective_length + start_thickness/2 - end_thickness/2 - clearance_margin
         : effective_length - (start_thickness + end_thickness)/2 - 2*clearance_margin;
     smaller_thickness = min(start_thickness, end_thickness);
-    offset_set = smaller_thickness < 4*board_thickness
+    offset_set = smaller_thickness < single_center_link_threshold
         ? [0]
         : [-1, 1];
 
