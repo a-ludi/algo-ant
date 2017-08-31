@@ -48,7 +48,7 @@ middle_leg_descriptor = [
     40*mm, // servo_joint_distance
     20*mm, // start_thickness
     15*mm, // end_thickness
-    80 // turn_bias
+    90 // turn_bias
 ];
 lower_leg_descriptor = [
     60*mm, // effective_length
@@ -58,7 +58,7 @@ lower_leg_descriptor = [
     0*mm, // servo_joint_distance
     15*mm, // start_thickness
     6*mm, // end_thickness
-    -30 // turn_bias
+    -40 // turn_bias
 ];
 
 i_ld_effective_length = 0;

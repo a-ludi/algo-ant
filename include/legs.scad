@@ -1,22 +1,24 @@
 include <defs.scad>;
 include <util.scad>;
 
-module leg() {
-    translate([0, joint_leg_descriptor[i_ld_start_thickness]/2, 0]) {
-        joint_leg();
+module leg(turn) {
+    rotate([0, 0, -(joint_leg_descriptor[i_ld_turn_bias] + turn[0])]) {
+        translate([0, joint_leg_descriptor[i_ld_start_thickness]/2, 0]) {
+            joint_leg();
 
-        translate([0, joint_leg_descriptor[i_ld_effective_length], 0]) {
-            rotate([-upper_leg_descriptor[i_ld_turn_bias], 0, 0]) {
-                upper_leg();
+            translate([0, joint_leg_descriptor[i_ld_effective_length], 0]) {
+                rotate([-(upper_leg_descriptor[i_ld_turn_bias] + turn[1]), 0, 0]) {
+                    upper_leg();
 
-                translate([0, upper_leg_descriptor[i_ld_effective_length], 0])
-                    rotate([-middle_leg_descriptor[i_ld_turn_bias], 0, 0]) {
-                        middle_leg();
+                    translate([0, upper_leg_descriptor[i_ld_effective_length], 0])
+                        rotate([-(middle_leg_descriptor[i_ld_turn_bias] + turn[2]), 0, 0]) {
+                            middle_leg();
 
-                        translate([0, middle_leg_descriptor[i_ld_effective_length], 0])
-                            rotate([-lower_leg_descriptor[i_ld_turn_bias], 0, 0])
-                                lower_leg();
-                    }
+                            translate([0, middle_leg_descriptor[i_ld_effective_length], 0])
+                                rotate([-(lower_leg_descriptor[i_ld_turn_bias] + turn[3]), 0, 0])
+                                    lower_leg();
+                        }
+                }
             }
         }
     }
