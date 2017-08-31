@@ -35,7 +35,7 @@ module generic_leg(leg_descriptor) {
     joint_type = leg_descriptor[i_ld_joint_type];
 
     translate([0, effective_length/2, 0]) {
-        if (has_servo)
+        if (has_servo && !hide_servos)
             generic_leg_servo(leg_descriptor);
         generic_leg_skeleton(leg_descriptor);
         if (joint_type == "hinge")
@@ -68,6 +68,7 @@ module generic_leg_skeleton(leg_descriptor) {
 
 module generic_leg_skeleton_sides(leg_descriptor) {
     effective_length = leg_descriptor[i_ld_effective_length];
+    has_servo = leg_descriptor[i_ld_has_servo];
     inner_width = leg_descriptor[i_ld_inner_width];
     joint_type = leg_descriptor[i_ld_joint_type];
     start_thickness = leg_descriptor[i_ld_start_thickness];
@@ -89,6 +90,9 @@ module generic_leg_skeleton_sides(leg_descriptor) {
 
             if (joint_type == "hinge")
                 generic_leg_skeleton_hinge_fixation_holes(leg_descriptor);
+
+            if (has_servo)
+                generic_leg_servo_cutting(leg_descriptor);
         }
 
         // end caps for cardan joint
@@ -267,13 +271,34 @@ module generic_leg_servo_cutting(leg_descriptor) {
     servo_joint_distance = leg_descriptor[i_ld_servo_joint_distance];
 
     servo_body_width = 11.8*mm;
+    servo_body_length = 22.2*mm;
     servo_mount_length = 32.2*mm;
     servo_axle_height = 31*mm;
     servo_mount_height = 16*mm;
 
     translate([-inner_width/2, effective_length/2 - servo_joint_distance, 0])
         rotate([180, 0, 0]) rotate([0, 90, 0]) {
-            translate(-[servo_body_width/2 + clearance_margin, servo_body_width, 0])
-                cube([servo_body_width + 2*clearance_margin, servo_mount_length + 2*clearance_margin, servo_axle_height - servo_mount_height + eps]);
+            // upper part
+            let(
+                width = servo_body_width + 2*clearance_margin,
+                length = servo_mount_length + 2*clearance_margin,
+                height = servo_axle_height - servo_mount_height + clearance_margin
+            )
+                translate(-[width/2, servo_body_width, 0])
+                    cube([width, length, height]);
+
+            // lower part
+            let(
+                width = servo_body_width + 2*clearance_margin,
+                length = servo_body_length + 2*clearance_margin,
+                height = servo_mount_height + clearance_margin + eps
+            )
+                translate(-[
+                    width/2,
+                    width/2,
+                    height - eps
+                ]) {
+                    cube([width, length, height]);
         }
+    }
 }

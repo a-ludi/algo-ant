@@ -3,6 +3,9 @@ include <MCAD/units.scad>;
 
 inf = 1e200 * 1e200;
 
+// controlling the output
+hide_servos = false;
+
 // dimensions
 eps = 0.1*mm;
 board_thickness = 1.5*mm;
