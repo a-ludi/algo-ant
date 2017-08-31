@@ -50,6 +50,8 @@ module generic_leg(leg_descriptor) {
         generic_leg_skeleton(leg_descriptor);
         if (joint_type == "hinge")
             generic_leg_tendon_insertion_for_hinge(leg_descriptor);
+        else if (joint_type == "cardan")
+            generic_leg_tendon_insertion_for_cardan(leg_descriptor);
         generic_leg_axle(leg_descriptor);
     }
 }
@@ -141,6 +143,7 @@ module generic_leg_skeleton_center_link(leg_descriptor) {
     inner_width = leg_descriptor[i_ld_inner_width];
     joint_type = leg_descriptor[i_ld_joint_type];
     start_thickness = leg_descriptor[i_ld_start_thickness];
+    turn_bias = leg_descriptor[i_ld_turn_bias];
     end_thickness = leg_descriptor[i_ld_end_thickness];
 
     link_length = joint_type == "cardan"
@@ -163,7 +166,7 @@ module generic_leg_skeleton_center_link(leg_descriptor) {
 
                     if (joint_type == "cardan")
                         translate([0, -link_length/2, 0])
-                            cylinder(board_thickness, d=start_thickness, center=true);
+                            cylinder(board_thickness, d=inner_width, center=true);
                 }
         }
 
@@ -177,20 +180,33 @@ module generic_leg_skeleton_center_link(leg_descriptor) {
                         effective_length/2 - link_length - end_thickness/2 - clearance_margin,
                         0
                     ])
-                        cylinder(
-                            start_thickness+2*eps,
-                            d=3*joint_axle_diameter_out,
-                            center=true
-                        );
+                        rotate([0, 0, turn_bias])
+                            translate([0, -inner_width/2, 0])
+                                cube([
+                                    2*inner_width,
+                                    3*joint_axle_diameter_out + inner_width,
+                                    start_thickness+2*eps
+                                ], center=true);
             };
 
-        if (joint_type == "cardan")
+        if (joint_type == "cardan") {
             translate([
                 0,
                 effective_length/2 - link_length - end_thickness/2 - clearance_margin,
                 0
-            ])
+            ]) {
                 cylinder(start_thickness+2*eps, d=joint_axle_diameter_out, center=true);
+
+                for (vertical_offset = (inner_width - tendon_insertion_diameter_out - 2*clearance_margin)/2*[-1, 1])
+                    rotate([0, 0, turn_bias])
+                        translate([vertical_offset, 0, 0])
+                            cylinder(
+                                h=start_thickness + eps,
+                                d=tendon_insertion_diameter_out,
+                                center=true
+                            );
+            }
+        }
     }
 }
 
@@ -209,6 +225,28 @@ module generic_leg_tendon_insertion_for_hinge(leg_descriptor) {
                     rotate([0, 90, 0])
                         tube(
                             h=inner_width,
+                            r_out=tendon_insertion_diameter_out/2,
+                            r_in=tendon_insertion_diameter_in/2,
+                            center=true
+                        );
+        }
+    }
+}
+
+module generic_leg_tendon_insertion_for_cardan(leg_descriptor) {
+    effective_length = leg_descriptor[i_ld_effective_length];
+    inner_width = leg_descriptor[i_ld_inner_width];
+    start_thickness = leg_descriptor[i_ld_start_thickness];
+    turn_bias = leg_descriptor[i_ld_turn_bias];
+
+    color(c_brass) {
+        translate([0, -(effective_length + start_thickness)/2, 0]) {
+            // brass tubes form the insertion
+            for (vertical_offset = (inner_width - tendon_insertion_diameter_out - 2*clearance_margin)/2*[-1, 1])
+                rotate([0, 0, turn_bias])
+                    translate([vertical_offset, 0, 0])
+                        tube(
+                            h=start_thickness,
                             r_out=tendon_insertion_diameter_out/2,
                             r_in=tendon_insertion_diameter_in/2,
                             center=true
