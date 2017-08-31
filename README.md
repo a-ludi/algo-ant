@@ -9,10 +9,21 @@ The Robot
 ---------
 
 The body of the robot has six legs consisting of three parts each. Each leg is
-connected to the body by a ball joint and the parts are connected by hinges.
+connected to the body by a cardan joint and the parts are connected by hinges.
 A head is located to the front of the body. It is connected by a ball joint
 and gives housing to a camera and proximity sensors. Attached to the head wih
 hinges are two pincers with rubber-coated endings.
+
+
+Forces
+------
+
+- Servo Stall Torque: 18 kg·mm
+- Worst Leg Leverage:
+	- 15 mm leverage at servo
+	- 180/120 transmission → 22.5 mm
+	- Total Effective Leg Length: 240 mm
+- Effective Force at Foot: 0.250 kg
 
 
 Parts Needed

@@ -2,18 +2,28 @@ include <defs.scad>;
 include <util.scad>;
 
 module leg() {
-    rotate([-upper_leg_descriptor[i_ld_turn_bias], 0, 0]) {
-        upper_leg();
+    translate([0, joint_leg_descriptor[i_ld_start_thickness]/2, 0]) {
+        joint_leg();
 
-        translate([0, upper_leg_descriptor[i_ld_effective_length], 0])
-            rotate([-middle_leg_descriptor[i_ld_turn_bias], 0, 0]) {
-                middle_leg();
+        translate([0, joint_leg_descriptor[i_ld_effective_length], 0]) {
+            rotate([-upper_leg_descriptor[i_ld_turn_bias], 0, 0]) {
+                upper_leg();
 
-                translate([0, middle_leg_descriptor[i_ld_effective_length], 0])
-                    rotate([-lower_leg_descriptor[i_ld_turn_bias], 0, 0])
-                        lower_leg();
+                translate([0, upper_leg_descriptor[i_ld_effective_length], 0])
+                    rotate([-middle_leg_descriptor[i_ld_turn_bias], 0, 0]) {
+                        middle_leg();
+
+                        translate([0, middle_leg_descriptor[i_ld_effective_length], 0])
+                            rotate([-lower_leg_descriptor[i_ld_turn_bias], 0, 0])
+                                lower_leg();
+                    }
             }
+        }
     }
+}
+
+module joint_leg() {
+    generic_leg(joint_leg_descriptor);
 }
 
 module upper_leg() {
@@ -40,8 +50,6 @@ module generic_leg(leg_descriptor) {
         generic_leg_skeleton(leg_descriptor);
         if (joint_type == "hinge")
             generic_leg_tendon_insertion_for_hinge(leg_descriptor);
-        else if (joint_type == "cardan")
-            generic_leg_tendon_insertion_for_cardan(leg_descriptor);
         generic_leg_axle(leg_descriptor);
     }
 }
@@ -60,6 +68,8 @@ module generic_leg_servo(leg_descriptor) {
 }
 
 module generic_leg_skeleton(leg_descriptor) {
+    joint_type = leg_descriptor[i_ld_joint_type];
+
     color(c_board) {
         generic_leg_skeleton_sides(leg_descriptor);
         generic_leg_skeleton_center_link(leg_descriptor);
@@ -77,16 +87,25 @@ module generic_leg_skeleton_sides(leg_descriptor) {
     for (offset = (inner_width + board_thickness)/2 * [-1, 1]) {
         difference() {
             // basic sides
-            translate([offset, 0, 0])
-                rotate([90, 0, 90])
-                    mic_board_with_holes(
-                        start_thickness/2,
-                        end_thickness/2,
-                        effective_length,
-                        joint_axle_diameter_out/2,
-                        joint_axle_screw_diameter/2,
-                        center=true
-                    );
+            union() {
+                translate([offset, 0, 0])
+                    rotate([90, 0, 90]) {
+                        mic_board_with_holes(
+                            start_thickness/2,
+                            end_thickness/2,
+                            effective_length,
+                            joint_type == "cardan"
+                                ? 0
+                                : joint_axle_diameter_out/2,
+                            joint_axle_screw_diameter/2,
+                            center=true
+                        );
+
+                        if (joint_type == "cardan")
+                            translate([-(effective_length + start_thickness/2)/2, 0, 0])
+                                cube([start_thickness/2, start_thickness, board_thickness], center=true);
+                    }
+            }
 
             if (joint_type == "hinge")
                 generic_leg_skeleton_hinge_fixation_holes(leg_descriptor);
@@ -94,20 +113,17 @@ module generic_leg_skeleton_sides(leg_descriptor) {
             if (has_servo)
                 generic_leg_servo_cutting(leg_descriptor);
         }
-
-        // end caps for cardan joint
-        if (joint_type == "cardan")
-            generic_leg_skeleton_cardan_joint_end_caps(leg_descriptor, offset);
     }
 }
 
 module generic_leg_skeleton_hinge_fixation_holes(leg_descriptor) {
     effective_length = leg_descriptor[i_ld_effective_length];
     inner_width = leg_descriptor[i_ld_inner_width];
+    start_thickness = leg_descriptor[i_ld_start_thickness];
     turn_bias = leg_descriptor[i_ld_turn_bias];
 
     translate([0, -effective_length/2, 0]) {
-        for (vertical_offset = servo_joint_transmission_ratio*servo_horn_radius*[-1, 1])
+        for (vertical_offset = (start_thickness - tendon_insertion_diameter_out - 2*clearance_margin)/2*[-1, 1])
             rotate([turn_bias, 0, 0])
             translate([0, 0, vertical_offset])
                 rotate([0, 90, 0])
@@ -119,52 +135,75 @@ module generic_leg_skeleton_hinge_fixation_holes(leg_descriptor) {
     }
 }
 
-module generic_leg_skeleton_cardan_joint_end_caps(leg_descriptor, offset) {
-    effective_length = leg_descriptor[i_ld_effective_length];
-    start_thickness = leg_descriptor[i_ld_start_thickness];
-
-    translate([offset + sign(offset)*board_thickness, -effective_length/2, 0])
-        rotate([0, 90, 0])
-            cylinder(board_thickness, d=start_thickness, center=true);
-}
-
 module generic_leg_skeleton_center_link(leg_descriptor) {
     effective_length = leg_descriptor[i_ld_effective_length];
     has_servo = leg_descriptor[i_ld_has_servo];
     inner_width = leg_descriptor[i_ld_inner_width];
+    joint_type = leg_descriptor[i_ld_joint_type];
     start_thickness = leg_descriptor[i_ld_start_thickness];
     end_thickness = leg_descriptor[i_ld_end_thickness];
 
-    link_length = effective_length - (start_thickness + end_thickness)/2 - 2*clearance_margin;
+    link_length = joint_type == "cardan"
+        ? effective_length + start_thickness/2 - end_thickness/2 - clearance_margin
+        : effective_length - (start_thickness + end_thickness)/2 - 2*clearance_margin;
     smaller_thickness = min(start_thickness, end_thickness);
     offset_set = smaller_thickness < 4*board_thickness
         ? [0]
         : [-1, 1];
 
     difference() {
-        union()
-            for (offset = (smaller_thickness/2 - board_thickness)*offset_set)
+        union() {
+            for (offset = (smaller_thickness - board_thickness)/2*offset_set)
                 translate([
                     0,
                     effective_length/2 - link_length/2 - end_thickness/2 - clearance_margin,
                     offset
-                ])
+                ]) {
                     cube([inner_width, link_length, board_thickness], center=true);
 
+                    if (joint_type == "cardan")
+                        translate([0, -link_length/2, 0])
+                            cylinder(board_thickness, d=start_thickness, center=true);
+                }
+        }
+
         if (has_servo)
-            generic_leg_servo_cutting(leg_descriptor);
+            difference() {
+                generic_leg_servo_cutting(leg_descriptor);
+
+                if (joint_type == "cardan")
+                    translate([
+                        0,
+                        effective_length/2 - link_length - end_thickness/2 - clearance_margin,
+                        0
+                    ])
+                        cylinder(
+                            start_thickness+2*eps,
+                            d=3*joint_axle_diameter_out,
+                            center=true
+                        );
+            };
+
+        if (joint_type == "cardan")
+            translate([
+                0,
+                effective_length/2 - link_length - end_thickness/2 - clearance_margin,
+                0
+            ])
+                cylinder(start_thickness+2*eps, d=joint_axle_diameter_out, center=true);
     }
 }
 
 module generic_leg_tendon_insertion_for_hinge(leg_descriptor) {
     effective_length = leg_descriptor[i_ld_effective_length];
     inner_width = leg_descriptor[i_ld_inner_width];
+    start_thickness = leg_descriptor[i_ld_start_thickness];
     turn_bias = leg_descriptor[i_ld_turn_bias];
 
     color(c_brass) {
         translate([0, -effective_length/2, 0]) {
             // brass tubes form the insertion
-            for (vertical_offset = servo_joint_transmission_ratio*servo_horn_radius*[-1, 1])
+            for (vertical_offset = (start_thickness - tendon_insertion_diameter_out - 2*clearance_margin)/2*[-1, 1])
                 rotate([turn_bias, 0, 0])
                 translate([0, 0, vertical_offset])
                     rotate([0, 90, 0])
@@ -175,74 +214,6 @@ module generic_leg_tendon_insertion_for_hinge(leg_descriptor) {
                             center=true
                         );
         }
-    }
-}
-
-module generic_leg_tendon_insertion_for_cardan(leg_descriptor) {
-    effective_length = leg_descriptor[i_ld_effective_length];
-    inner_width = leg_descriptor[i_ld_inner_width];
-    turn_bias = leg_descriptor[i_ld_turn_bias];
-
-    translate([0, -effective_length/2, 0]) {
-        rotate([turn_bias + 90, 0, 0]) {
-            color(c_board)
-                generic_leg_tendon_insertion_for_cardan_cross_plate(leg_descriptor);
-
-            // brass end caps
-            color(c_brass)
-                generic_leg_tendon_insertion_for_cardan_end_caps(leg_descriptor);
-        }
-    }
-}
-
-module generic_leg_tendon_insertion_for_cardan_cross_plate(leg_descriptor) {
-    inner_width = leg_descriptor[i_ld_inner_width];
-
-    axle_length = inner_width + 2*board_thickness;
-    nib_width = sqrt(pow(tendon_insertion_diameter_in, 2) - pow(board_thickness, 2));
-    cardan_ball_diameter = inner_width - clearance_margin;
-
-    difference() {
-        union() {
-            // base plate
-            cylinder(
-                board_thickness,
-                d=cardan_ball_diameter,
-                center=true
-            );
-
-            // nibs
-            for(alpha = [0, 90])
-                rotate([0, 0, alpha])
-                        cube([axle_length, nib_width, board_thickness], center=true);
-        }
-
-        // tendon insertion
-        for (horizontal_offset = servo_joint_transmission_ratio*servo_horn_radius*[-1, 0, 1])
-            for (vertical_offset = servo_joint_transmission_ratio*servo_horn_radius*[-1, 0, 1])
-                if (horizontal_offset != vertical_offset && horizontal_offset + vertical_offset != 0)
-                    translate([horizontal_offset, vertical_offset, 0])
-                        cylinder(2*board_thickness, d=tendon_insertion_diameter_hole, center=true);
-    }
-}
-
-module generic_leg_tendon_insertion_for_cardan_end_caps(leg_descriptor) {
-    inner_width = leg_descriptor[i_ld_inner_width];
-
-    axle_length = inner_width + 2*board_thickness;
-    nib_width = sqrt(pow(tendon_insertion_diameter_in, 2) - pow(board_thickness, 2));
-    cardan_ball_diameter = inner_width - clearance_margin;
-
-    difference(){
-        for(alpha = [0, 90])
-            rotate([0, 90, alpha])
-                tube(
-                    h=axle_length,
-                    r_out=tendon_insertion_diameter_out/2,
-                    r_in=tendon_insertion_diameter_in/2,
-                    center=true
-                );
-        cube(cardan_ball_diameter, center=true);
     }
 }
 
