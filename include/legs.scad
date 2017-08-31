@@ -135,13 +135,22 @@ module generic_leg_skeleton_center_link(leg_descriptor) {
     start_thickness = leg_descriptor[i_ld_start_thickness];
     end_thickness = leg_descriptor[i_ld_end_thickness];
 
+    link_length = effective_length - (start_thickness + end_thickness)/2 - 2*clearance_margin;
+    smaller_thickness = min(start_thickness, end_thickness);
+    offset_set = smaller_thickness < 4*board_thickness
+        ? [0]
+        : [-1, 1];
+
     difference() {
-        let(
-            link_length = effective_length - (start_thickness + end_thickness)/2 - 2*clearance_margin
-        ) {
-            translate([0, effective_length/2 - link_length/2 - end_thickness/2 - clearance_margin, 0])
-                cube([inner_width, link_length, board_thickness], center=true);
-        }
+        union()
+            for (offset = (smaller_thickness/2 - board_thickness)*offset_set)
+                translate([
+                    0,
+                    effective_length/2 - link_length/2 - end_thickness/2 - clearance_margin,
+                    offset
+                ])
+                    cube([inner_width, link_length, board_thickness], center=true);
+
         if (has_servo)
             generic_leg_servo_cutting(leg_descriptor);
     }
@@ -270,11 +279,14 @@ module generic_leg_servo_cutting(leg_descriptor) {
     inner_width = leg_descriptor[i_ld_inner_width];
     servo_joint_distance = leg_descriptor[i_ld_servo_joint_distance];
 
+    servo_horn_arm_width = 4*mm;
+    servo_horn_arm_thickness = 1.7*mm;
     servo_body_width = 11.8*mm;
     servo_body_length = 22.2*mm;
     servo_mount_length = 32.2*mm;
     servo_axle_height = 31*mm;
     servo_mount_height = 16*mm;
+    maintenance_shaft = servo_axle_height;
 
     translate([-inner_width/2, effective_length/2 - servo_joint_distance, 0])
         rotate([180, 0, 0]) rotate([0, 90, 0]) {
@@ -282,10 +294,19 @@ module generic_leg_servo_cutting(leg_descriptor) {
             let(
                 width = servo_body_width + 2*clearance_margin,
                 length = servo_mount_length + 2*clearance_margin,
-                height = servo_axle_height - servo_mount_height + clearance_margin
+                height = servo_axle_height - servo_mount_height + 2*clearance_margin
             )
-                translate(-[width/2, servo_body_width, 0])
-                    cube([width, length, height]);
+                translate(-[width/2 + maintenance_shaft, servo_body_width, 0])
+                    cube([width + maintenance_shaft, length, height]);
+
+            // horn
+            let(
+                radius = servo_horn_radius + servo_horn_arm_width/2 + clearance_margin,
+                height = servo_horn_arm_thickness + 3*clearance_margin,
+                z_shift = servo_axle_height - servo_mount_height - height + 2*clearance_margin
+            )
+                translate([0, 0, z_shift])
+                    cylinder(height, r=radius);
 
             // lower part
             let(
