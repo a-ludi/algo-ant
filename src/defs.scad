@@ -21,7 +21,7 @@ tendon_insertion_diameter_hole = 0.8*mm;
 tendon_insertion_diameter_in = 3*mm;
 tendon_insertion_diameter_out = tendon_insertion_diameter_in + 0.45*mm;
 single_center_link_threshold = 6*board_thickness;
-small_hip_bridge_threshold = 4*board_thickness;
+skeleton_frame_thickness = 7*mm;
 clearance_margin = 1*mm;
 leg_base_inner_width = 2*13.3*mm;
 leg_part_descriptor_joint = [
@@ -79,6 +79,7 @@ i_ld_turn_bias = 7;
 // colors
 c_aluminum = "LightGrey";
 c_brass = [242, 198, 85]/255;
+c_circuit = "DarkOliveGreen";
 c_steel = "LightSteelBlue";
 c_board = "BurlyWood";
 c_glass = [0.8, 0.8, 0.8, 0.3];

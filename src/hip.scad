@@ -1,11 +1,13 @@
 include <defs.scad>;
 include <util.scad>;
 
-i_hd_end_thickness = 0;
+i_hd_mount_diameter = 0;
 i_hd_inner_height = 1;
-i_hd_start_thickness = 2;
-i_hd_effective_length = 3;
-i_hd_max_turn = 4;
+i_hd_width = 2;
+i_hd_length = 3;
+i_hd_servo_joint_distance = 4;
+i_hd_has_servo_driver = 5;
+i_hd_capped_end = 6; // TODO make designated end closed and short
 
 module hip(adjecent_leg_part) {
     alp_effective_length = adjecent_leg_part[i_ld_effective_length];
@@ -13,141 +15,232 @@ module hip(adjecent_leg_part) {
     alp_inner_width = adjecent_leg_part[i_ld_inner_width];
     alp_joint_type = adjecent_leg_part[i_ld_joint_type];
     alp_servo_joint_distance = adjecent_leg_part[i_ld_servo_joint_distance];
-    alp_start_thickness = adjecent_leg_part[i_ld_start_thickness];
     alp_end_thickness = adjecent_leg_part[i_ld_end_thickness];
+    alp_start_thickness = adjecent_leg_part[i_ld_start_thickness];
     alp_turn_bias = adjecent_leg_part[i_ld_turn_bias];
 
     hip_descriptor = [
-        alp_inner_width, // end_thickness
-        alp_start_thickness + board_thickness + clearance_margin, // inner_height
-        180*mm, // start_thickness
-        80*mm, // effective_length
-        26 // max_turn
+        alp_inner_width + 2*board_thickness, // mount_diameter
+        alp_end_thickness + clearance_margin, // inner_height
+        180*mm, // width
+        80*mm, // length
+        40*mm - 5.2*mm, // servo_joint_distance
+        true // has_servo_driver
     ];
 
-    hip_sides(hip_descriptor);
+    color(c_board) {
+        hip_sides(hip_descriptor);
+        hip_sides_link(hip_descriptor);
+    }
+
+    if (hip_descriptor[i_hd_has_servo_driver])
+        hip_servo_driver(hip_descriptor);
+
+    if (!hide_servos)
+        hip_servo(hip_descriptor);
 
     children();
 }
 
 module hip_sides(hip_descriptor) {
     inner_height = hip_descriptor[i_hd_inner_height];
-    end_thickness = hip_descriptor[i_hd_end_thickness];
-    start_thickness = hip_descriptor[i_hd_start_thickness];
-    effective_length = hip_descriptor[i_hd_effective_length];
-    max_turn = hip_descriptor[i_hd_max_turn];
+    mount_diameter = hip_descriptor[i_hd_mount_diameter];
+    width = hip_descriptor[i_hd_width];
+    length = hip_descriptor[i_hd_length];
+    has_servo_driver = hip_descriptor[i_hd_has_servo_driver];
 
-    if (max_turn < 0)
-        warn("choose positive <code><b>max_turn</b></code>");
+    difference() {
+        for (vertical_offset = (inner_height + board_thickness)/2*[-1, 1]) {
+            translate(vertical_offset*Z) {
+                difference() {
+                    union() {
+                        cylinder(board_thickness, d=mount_diameter, center=true);
+                        translate(-length/2*Y)
+                            cube([width, length, board_thickness], center=true);
+                    }
 
-    alpha = 90 - max_turn;
-    r_bridge1 = (end_thickness/2*sin(alpha) - start_thickness/2)/
-                (1 - 1/PHI - sin(alpha));
-    r_bridge2 = r_bridge1/PHI;
-    delta_v = (end_thickness/2 + r_bridge1)*cos(alpha);
-    delta_h = (end_thickness/2 + r_bridge1)*sin(alpha);
+                    cylinder(board_thickness + eps, d=joint_axle_screw_diameter, center=true);
+                }
+            }
+        }
 
-    if (r_bridge1 < small_hip_bridge_threshold)
-        warn("choose larger <code><b>start_thickness</b></code> or smaller <code><b>max_turn</b></code>");
-    if (delta_h < r_bridge1)
-        warn("choose smaller <code><b>start_thickness</b></code> or smaller <code><b>max_turn</b></code>");
-    if (effective_length < delta_v + r_bridge2)
-        warn("choose larger <code><b>effective_length</b></code>");
+        hip_servo_cutting(hip_descriptor);
 
-    for (vertical_offset = inner_height/2*[-1, 1]) {
-        translate(vertical_offset*Z) {
-            // end part
-            cylinder(board_thickness, d=end_thickness, center=true, $fn=end_thickness);
+        if (has_servo_driver)
+            hip_servo_driver_cutting(hip_descriptor);
+    }
+}
 
-            // bridge part
-            difference() {
-                linear_extrude(board_thickness, center=true)
-                    polygon([
-                        [0, 0],
-                        [delta_h, -delta_v],
-                        [-delta_h, -delta_v]
+module hip_sides_link(hip_descriptor) {
+    inner_height = hip_descriptor[i_hd_inner_height];
+    mount_diameter = hip_descriptor[i_hd_mount_diameter];
+    width = hip_descriptor[i_hd_width];
+    length = hip_descriptor[i_hd_length];
+
+    servo_mount_height = 16*mm;
+    servo_body_width = 11.8*mm;
+
+    mount_opening_width = sqrt(2)*mount_diameter;
+    mount_opening_servo_cutting = sqrt(2)*(mount_diameter/2 + servo_mount_height - board_thickness);
+
+    // joint side
+    for (offset = [0, 1])
+        mirror(offset*X)
+            translate([
+                mount_opening_width/2 + clearance_margin,
+                -board_thickness,
+                -inner_height/2
+            ]) {
+                difference() {
+                    cube([
+                        (width - mount_opening_width)/2 - clearance_margin,
+                        board_thickness,
+                        inner_height
                     ]);
 
-                translate(-delta_v*Y)
-                    for (s = [-1, 1])
-                        translate(s*delta_h*X)
-                            cylinder(board_thickness + eps, r=r_bridge1, center=true);
+                    if (offset > 0)
+                        translate([
+                            -eps,
+                            -eps,
+                            (inner_height - servo_body_width - 2*clearance_margin)/2
+                        ])
+                            cube([
+                                mount_opening_servo_cutting - mount_opening_width/2 + clearance_margin + eps,
+                                board_thickness + 2*eps,
+                                servo_body_width + 2*clearance_margin
+                            ]);
+                }
             }
 
-            difference() {
-                linear_extrude(board_thickness, center=true)
-                    polygon([
-                        [start_thickness/2, -delta_v],
-                        [-start_thickness/2, -delta_v],
-                        [-start_thickness/2, -(delta_v + r_bridge2)],
-                        [-start_thickness/2, -effective_length],
-                        [start_thickness/2, -effective_length],
-                        [start_thickness/2, -(delta_v + r_bridge2)]
-                    ]);
+    // front side
+    translate([
+        (width - board_thickness)/2,
+        -(length + board_thickness)/2,
+        0
+    ]) {
+        difference() {
+            cube([
+                board_thickness,
+                length - board_thickness,
+                inner_height
+            ], center=true);
 
-                translate(-delta_v*Y)
-                    for (s = [-1, 1])
-                        translate(s*start_thickness/2*X)
-                            cylinder(board_thickness + eps, r=r_bridge2, center=true);
-            }
+            let(
+                width = length - board_thickness - 1.5*skeleton_frame_thickness,
+                height = inner_height - 2*skeleton_frame_thickness
+            )
+                translate(-0.25*skeleton_frame_thickness*Y)
+                    rotate(90*X + 90*Z)
+                        linear_extrude(board_thickness + eps, center=true)
+                            mic_shape(
+                                height/2,
+                                height/2,
+                                width - height,
+                                center=true
+                            );
         }
     }
 }
 
-module hip_sides_draft1(hip_descriptor) {
+module hip_servo(hip_descriptor) {
     inner_height = hip_descriptor[i_hd_inner_height];
-    end_thickness = hip_descriptor[i_hd_end_thickness];
-    start_thickness = hip_descriptor[i_hd_start_thickness];
-    effective_length = hip_descriptor[i_hd_effective_length];
+    servo_joint_distance = hip_descriptor[i_hd_servo_joint_distance];
 
-    gap = board_thickness + clearance_margin;
-    r_gap = 3*gap;
-    delta_parts = gap + (start_thickness + end_thickness)/2;
-    delta_v = (pow(end_thickness/2 + r_gap, 2) - pow(start_thickness/2 + r_gap, 2) + pow(delta_parts, 2))/(2*delta_parts);
-    delta_h = sqrt(pow(end_thickness/2 + r_gap, 2) - pow(delta_v, 2));
-    r_gap_factor = 1 + 0.1*pow(delta_v, 2)/(pow(delta_h, 2) + pow(delta_v, 2));
-    delta_start = sqrt(2)*start_thickness/2;
-
-    for (vertical_offset = inner_height/2*[-1, 1]) {
-        translate(vertical_offset*Z) {
-            // end part
-            cylinder(board_thickness, d=end_thickness, center=true, $fn=end_thickness);
-
-            // start part (draft #1)
-            translate(-delta_parts*Y) {
-                intersection() {
-                    cylinder(board_thickness, d=start_thickness, center=true);
-                    translate(delta_start/2*Y)
-                        cube([2*delta_start, delta_start, board_thickness + eps], center=true);
-                }
-
-                difference() {
-                    translate(delta_start/4*Y)
-                        cube([2*delta_start, delta_start/2, board_thickness], center=true);
-
-                    for (offset = delta_start*[-1, 1]) {
-                        translate([offset, delta_start])
-                            cylinder(board_thickness + eps, d=start_thickness, center=true);
-                    }
-                }
-            }
-
-            // gap part
-            difference() {
-                linear_extrude(board_thickness, center=true)
-                    polygon([
-                        [0, 0],
-                        [delta_h, -delta_v],
-                        [0, -delta_parts],
-                        [-delta_h, -delta_v]
-                    ]);
-
-
-                for (horizontal_offset = delta_h*[-1, 1]) {
-                    translate([horizontal_offset, -delta_v, 0])
-                        cylinder(board_thickness + eps, r=r_gap_factor*r_gap, center=true);
-                }
-            }
+    translate(-servo_joint_distance*Y - (inner_height/2)*Z)
+        rotate([0, 0, 180]) {
+            sg90_servo();
+            translate([0, 0, 15*mm - 5.5*mm])
+                servo_horn(2*servo_horn_radius, 4);
         }
-    }
+}
+
+module hip_servo_cutting(hip_descriptor) {
+    inner_height = hip_descriptor[i_hd_inner_height];
+    servo_joint_distance = hip_descriptor[i_hd_servo_joint_distance];
+
+    servo_horn_arm_width = 4*mm;
+    servo_horn_arm_thickness = 1.7*mm;
+    servo_body_width = 11.8*mm;
+    servo_body_length = 22.2*mm;
+    servo_mount_length = 32.2*mm;
+    servo_axle_height = 31*mm;
+    servo_mount_height = 16*mm;
+
+    translate([
+        0,
+        -servo_joint_distance,
+        -inner_height/2 + eps
+    ])
+        rotate([0, 0, 180]) {
+            // upper part
+            let(
+                width = 2*servo_horn_radius + servo_horn_arm_width + 2*clearance_margin,
+                length = servo_mount_length + 2*clearance_margin,
+                height = inner_height + board_thickness + eps
+            )
+                translate(-[0, servo_body_width/2 - servo_body_length/2, 0])
+                    cylinder(height, d=sqrt(pow(width, 2) + pow(length, 2)));
+
+            // lower part
+            let(
+                width = servo_body_width + 2*clearance_margin,
+                length = servo_body_length + 2*clearance_margin,
+                height = servo_mount_height + clearance_margin + eps
+            )
+                translate(-[
+                    width/2,
+                    width/2,
+                    height - eps
+                ]) {
+                    cube([width, length, height]);
+
+                    // cable shaft
+                    translate([
+                        (servo_body_width + 2*clearance_margin)/2,
+                        length + servo_cable_shaft_diameter,
+                        height - eps - 1.5*board_thickness
+                    ])
+                        cylinder(2*board_thickness, d=servo_cable_shaft_diameter);
+                }
+        }
+}
+
+module hip_servo_driver(hip_descriptor) {
+    inner_height = hip_descriptor[i_hd_inner_height];
+    mount_diameter = hip_descriptor[i_hd_mount_diameter];
+    width = hip_descriptor[i_hd_width];
+    length = hip_descriptor[i_hd_length];
+    capped_end = hip_descriptor[i_hd_capped_end];
+
+    montage_side = capped_end
+        ? -capped_end :
+        1;
+
+    color(c_circuit)
+        translate([montage_side*width/4, -length/2, -inner_height/2])
+            rotate(90*Z)
+                pca9685_16_channel_pwm_driver();
+}
+
+module hip_servo_driver_cutting(hip_descriptor) {
+    inner_height = hip_descriptor[i_hd_inner_height];
+    mount_diameter = hip_descriptor[i_hd_mount_diameter];
+    width = hip_descriptor[i_hd_width];
+    length = hip_descriptor[i_hd_length];
+    capped_end = hip_descriptor[i_hd_capped_end];
+
+    servo_driver_length = 62.5*mm;
+    servo_driver_width = 25.4*mm;
+
+    montage_side = capped_end
+        ? -capped_end :
+        1;
+
+    translate([montage_side*width/4, -length/2, (board_thickness + eps)/2])
+        rotate(90*Z)
+            cube([
+                servo_driver_length + 2*clearance_margin,
+                servo_driver_width + 2*clearance_margin,
+                inner_height + board_thickness + eps
+            ], center=true);
 }

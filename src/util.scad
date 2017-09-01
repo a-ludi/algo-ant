@@ -228,6 +228,13 @@ module my_flat_nut(d) {
             flat_nut(d);
 }
 
+module pca9685_16_channel_pwm_driver() {
+    height = 20*mm;
+
+    translate(height/2*Z)
+        cube([62.5*mm, 25.4*mm, height], center=true);
+}
+
 module warn(text) {
     echo(str("<span style=\"color: red\">warning: ", text, "</span>"));
 }
