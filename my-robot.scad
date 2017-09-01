@@ -2,8 +2,8 @@ include <src/leg.scad>;
 include <src/hip.scad>;
 use <include/raspberry-pi/rpi.scad>;
 
-$fa = 30;
-$fs = 5;
+ $fa = 10;
+$fs = 1.5;
 
 alpha = 26;
 
