@@ -254,12 +254,7 @@ module leg_part_tendon_insertion_for_hinge(leg_part_descriptor) {
                 rotate([turn_bias, 0, 0])
                 translate([0, 0, vertical_offset])
                     rotate([0, 90, 0])
-                        tube(
-                            h=inner_width,
-                            r_out=tendon_insertion_diameter_out/2,
-                            r_in=tendon_insertion_diameter_in/2,
-                            center=true
-                        );
+                        tendon_insertion(inner_width);
         }
     }
 }
@@ -276,12 +271,7 @@ module leg_part_tendon_insertion_for_cardan(leg_part_descriptor) {
             for (vertical_offset = (inner_width - tendon_insertion_diameter_out - 2*clearance_margin)/2*[-1, 1])
                 rotate([0, 0, turn_bias])
                     translate([vertical_offset, 0, 0])
-                        tube(
-                            h=start_thickness,
-                            r_out=tendon_insertion_diameter_out/2,
-                            r_in=tendon_insertion_diameter_in/2,
-                            center=true
-                        );
+                        tendon_insertion(start_thickness);
         }
     }
 }
@@ -290,28 +280,9 @@ module leg_part_axle(leg_part_descriptor) {
     effective_length = leg_part_descriptor[i_ld_effective_length];
     inner_width = leg_part_descriptor[i_ld_inner_width];
 
-    translate([0, effective_length/2, 0]) {
-        rotate([0, 90, 0]) {
-            // brass tube
-            color(c_brass)
-                tube(
-                    h=inner_width,
-                    r_out=joint_axle_diameter_out/2,
-                    r_in=joint_axle_diameter_in/2,
-                    center=true
-                );
-            // fixation bolt
-            color(c_steel) {
-                translate([0, 0, -(inner_width + 2*board_thickness)/2])
-                    my_bolt(
-                        joint_axle_screw_diameter,
-                        inner_width + 2*board_thickness + 1.2*my_flat_nut_thickness(joint_axle_screw_diameter)
-                    );
-                translate([0, 0, (inner_width + 2*board_thickness)/2])
-                    my_flat_nut(joint_axle_screw_diameter);
-            }
-        }
-    }
+    translate([0, effective_length/2, 0])
+        rotate([0, -90, 0])
+            joint_axle_with_bolt(inner_width);
 }
 
 module leg_part_servo_cutting(leg_part_descriptor) {

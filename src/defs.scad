@@ -7,6 +7,9 @@ PHI = (1 + sqrt(5))/2;
 
 // controlling the output
 hide_servos = false;
+hide_circuits = false;
+hide_axles = false;
+hide_tendon_insertion = false;
 
 // dimensions
 eps = 0.1*mm;

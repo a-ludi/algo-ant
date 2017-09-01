@@ -28,18 +28,26 @@ module hip(adjecent_leg_part) {
         true // has_servo_driver
     ];
 
+    translate(hip_descriptor[i_hd_length]*Y) {
+        hip_skeleton(hip_descriptor);
+
+        if (hip_descriptor[i_hd_has_servo_driver])
+            hip_servo_driver(hip_descriptor);
+
+        if (!hide_servos)
+            hip_servo(hip_descriptor);
+
+        hip_axle(hip_descriptor);
+
+        children();
+    }
+}
+
+module hip_skeleton(hip_descriptor) {
     color(c_board) {
         hip_sides(hip_descriptor);
         hip_sides_link(hip_descriptor);
     }
-
-    if (hip_descriptor[i_hd_has_servo_driver])
-        hip_servo_driver(hip_descriptor);
-
-    if (!hide_servos)
-        hip_servo(hip_descriptor);
-
-    children();
 }
 
 module hip_sides(hip_descriptor) {
@@ -216,10 +224,11 @@ module hip_servo_driver(hip_descriptor) {
         ? -capped_end :
         1;
 
-    color(c_circuit)
-        translate([montage_side*width/4, -length/2, -inner_height/2])
-            rotate(90*Z)
-                pca9685_16_channel_pwm_driver();
+    if (!hide_circuits)
+        color(c_circuit)
+            translate([montage_side*width/4, -length/2, -inner_height/2])
+                rotate(90*Z)
+                    pca9685_16_channel_pwm_driver();
 }
 
 module hip_servo_driver_cutting(hip_descriptor) {
@@ -243,4 +252,11 @@ module hip_servo_driver_cutting(hip_descriptor) {
                 servo_driver_width + 2*clearance_margin,
                 inner_height + board_thickness + eps
             ], center=true);
+}
+
+module hip_axle(hip_descriptor) {
+    inner_height = hip_descriptor[i_hd_inner_height];
+
+    rotate(180*X)
+        joint_axle_with_bolt(inner_height);
 }

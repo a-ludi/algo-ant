@@ -238,3 +238,36 @@ module pca9685_16_channel_pwm_driver() {
 module warn(text) {
     echo(str("<span style=\"color: red\">warning: ", text, "</span>"));
 }
+
+module tendon_insertion(length) {
+    if (!hide_tendon_insertion)
+        tube(
+            h=length,
+            r_out=tendon_insertion_diameter_out/2,
+            r_in=tendon_insertion_diameter_in/2,
+            center=true
+        );
+}
+
+module joint_axle_with_bolt(length) {
+    if (!hide_axles) {
+        // brass tube
+        color(c_brass)
+            tube(
+                h=length,
+                r_out=joint_axle_diameter_out/2,
+                r_in=joint_axle_diameter_in/2,
+                center=true
+            );
+        // fixation bolt
+        color(c_steel) {
+            translate([0, 0, -(length + 2*board_thickness)/2])
+                my_bolt(
+                    joint_axle_screw_diameter,
+                    length + 2*board_thickness + 1.2*my_flat_nut_thickness(joint_axle_screw_diameter)
+                );
+            translate([0, 0, (length + 2*board_thickness)/2])
+                my_flat_nut(joint_axle_screw_diameter);
+        }
+    }
+}
