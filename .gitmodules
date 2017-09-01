@@ -1,0 +1,4 @@
+[submodule "include/raspberry-pi"]
+	path = include/raspberry-pi
+	url = git@github.com:a-ludi/Raspberry-Pi-OpenSCAD-Model.git
+	branch = remedy-deprecation-warning
