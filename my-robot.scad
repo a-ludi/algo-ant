@@ -1,5 +1,5 @@
-include <include/leg.scad>;
-include <include/hip.scad>;
+include <src/leg.scad>;
+include <src/hip.scad>;
 
 $fa = 30;
 $fs = 5;
