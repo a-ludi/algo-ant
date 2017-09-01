@@ -1,5 +1,13 @@
-include <include/legs.scad>;
+include <include/leg.scad>;
+include <include/hip.scad>;
 
-$fn = 20;
+$fa = 30;
+$fs = 5;
 
-leg(sin($t*180)*[-20, -40, 60, 5 - 10*abs(sin($t*360))]);
+alpha = 26;
+
+// distance between hip joint: [180mm, 80mm]
+// resulting max turn with [-10, 0, 10] bias: 26
+
+hip(leg_part_descriptor_joint)
+    leg(sin($t*180)*[-20, -40, 60, 5 - 10*abs(sin($t*360))]);

@@ -227,3 +227,7 @@ module my_flat_nut(d) {
         rotate([0, 180, 0])
             flat_nut(d);
 }
+
+module warn(text) {
+    echo(str("<span style=\"color: red\">warning: ", text, "</span>"));
+}

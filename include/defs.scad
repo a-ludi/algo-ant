@@ -1,7 +1,9 @@
 // utility variables
 include <MCAD/units.scad>;
 
+// constants
 inf = 1e200 * 1e200;
+PHI = (1 + sqrt(5))/2;
 
 // controlling the output
 hide_servos = false;
@@ -18,9 +20,10 @@ tendon_insertion_diameter_hole = 0.8*mm;
 tendon_insertion_diameter_in = 3*mm;
 tendon_insertion_diameter_out = tendon_insertion_diameter_in + 0.45*mm;
 single_center_link_threshold = 6*board_thickness;
+small_hip_bridge_threshold = 4*board_thickness;
 clearance_margin = 1*mm;
 leg_base_inner_width = 2*13.3*mm;
-joint_leg_descriptor = [
+leg_part_descriptor_joint = [
     37*mm, // effective_length
     true, // has_servo
     leg_base_inner_width + 2*board_thickness + 1*clearance_margin, // inner_width
@@ -28,9 +31,9 @@ joint_leg_descriptor = [
     27*mm, // servo_joint_distance
     30*mm, // start_thickness
     30*mm, // end_thickness
-    0 // turn_bias
+    10 // turn_bias
 ];
-upper_leg_descriptor = [
+leg_part_descriptor_upper = [
     80*mm, // effective_length
     true, // has_servo
     leg_base_inner_width + 0.5*clearance_margin, // inner_width
@@ -40,7 +43,7 @@ upper_leg_descriptor = [
     20*mm, // end_thickness
     -30 // turn_bias
 ];
-middle_leg_descriptor = [
+leg_part_descriptor_middle = [
     100*mm, // effective_length
     true, // has_servo
     leg_base_inner_width - 2*board_thickness, // inner_width
@@ -50,7 +53,7 @@ middle_leg_descriptor = [
     15*mm, // end_thickness
     90 // turn_bias
 ];
-lower_leg_descriptor = [
+leg_part_descriptor_lower = [
     60*mm, // effective_length
     false, // has_servo
     leg_base_inner_width - 4*board_thickness - 0.5*clearance_margin, // inner_width
