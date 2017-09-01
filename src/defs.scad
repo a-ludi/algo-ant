@@ -14,6 +14,7 @@ board_thickness = 1.5*mm;
 joint_axle_screw_diameter = M3;
 joint_axle_diameter_in = 3*mm;
 joint_axle_diameter_out = joint_axle_diameter_in + 0.45*mm;
+servo_cable_shaft_diameter = 10*mm;
 servo_horn_radius = 7.5*mm;
 // TODO servos will use < 180
 tendon_insertion_diameter_hole = 0.8*mm;

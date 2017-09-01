@@ -363,13 +363,22 @@ module leg_part_servo_cutting(leg_part_descriptor) {
                 width = servo_body_width + 2*clearance_margin,
                 length = servo_body_length + 2*clearance_margin,
                 height = servo_mount_height + clearance_margin + eps
-            )
+            ) {
                 translate(-[
                     width/2,
                     width/2,
                     height - eps
                 ]) {
                     cube([width, length, height]);
+
+                    // cable shaft
+                    translate([
+                        (servo_body_width + 2*clearance_margin)/2,
+                        length + servo_cable_shaft_diameter,
+                        height - eps - 1.5*board_thickness
+                    ])
+                        cylinder(2*board_thickness, d=servo_cable_shaft_diameter);
+                }
+            }
         }
-    }
 }
