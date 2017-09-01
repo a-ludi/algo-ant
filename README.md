@@ -23,7 +23,7 @@ Forces
 	- 15 mm leverage at servo
 	- 180/120 transmission → 22.5 mm
 	- Total Effective Leg Length: 240 mm
-- Effective Force at Foot: 0.250 kg
+- Effective Force at Foot: ~0.250 kg
 
 
 Parts Needed
