@@ -80,5 +80,6 @@ c_aluminum = "LightGrey";
 c_brass = [242, 198, 85]/255;
 c_steel = "LightSteelBlue";
 c_board = "BurlyWood";
+c_glass = [0.8, 0.8, 0.8, 0.3];
 c_servo = "Blue";
 c_servo_horn = "LightCyan";
