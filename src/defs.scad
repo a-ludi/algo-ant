@@ -3,7 +3,14 @@ include <MCAD/units.scad>;
 
 // constants
 inf = 1e200 * 1e200;
+NULL = [0, 0, 0];
 PHI = (1 + sqrt(5))/2;
+FRONT = X;
+BACK = -X;
+LEFT = Y;
+RIGHT = -Y;
+UP = Z;
+DOWN = Z;
 
 // controlling the output
 hide_servos = false;
@@ -19,6 +26,9 @@ joint_axle_diameter_in = 3*mm;
 joint_axle_diameter_out = joint_axle_diameter_in + 0.45*mm;
 servo_cable_shaft_diameter = 10*mm;
 servo_horn_radius = 7.5*mm;
+rpi_width = 56*mm;
+rpi_length = 85*mm;
+rpi_height = 1.5*mm;
 // TODO servos will use < 180
 tendon_insertion_diameter_hole = 0.8*mm;
 tendon_insertion_diameter_in = 3*mm;
@@ -26,6 +36,38 @@ tendon_insertion_diameter_out = tendon_insertion_diameter_in + 0.45*mm;
 single_center_link_threshold = 6*board_thickness;
 skeleton_frame_thickness = 7*mm;
 clearance_margin = 1*mm;
+
+front_hip_descriptor = [
+    undef, // mount_diameter
+    undef, // inner_height
+    180*mm, // width
+    80*mm, // length
+    40*mm - 5.2*mm, // servo_joint_distance
+    false, // has_servo_driver
+    FRONT, // capped_end
+    false // has_rpi
+];
+center_hip_descriptor = [
+    undef, // mount_diameter
+    undef, // inner_height
+    180*mm, // width
+    80*mm, // length
+    40*mm - 5.2*mm, // servo_joint_distance
+    true, // has_servo_driver
+    false, // capped_end
+    false // has_rpi
+];
+back_hip_descriptor = [
+    undef, // mount_diameter
+    undef, // inner_height
+    180*mm, // width
+    80*mm, // length
+    40*mm - 5.2*mm, // servo_joint_distance
+    false, // has_servo_driver
+    BACK, // capped_end
+    false // has_rpi
+];
+
 leg_base_inner_width = 2*13.3*mm;
 leg_part_descriptor_joint = [
     37*mm, // effective_length
@@ -68,6 +110,15 @@ leg_part_descriptor_lower = [
     -40 // turn_bias
 ];
 
+i_hd_mount_diameter = 0;
+i_hd_inner_height = 1;
+i_hd_width = 2;
+i_hd_length = 3;
+i_hd_servo_joint_distance = 4;
+i_hd_has_servo_driver = 5;
+i_hd_capped_end = 6;
+i_hd_has_rpi = 7;
+
 i_ld_effective_length = 0;
 i_ld_has_servo = 1;
 i_ld_inner_width = 2;
@@ -76,8 +127,6 @@ i_ld_servo_joint_distance = 4;
 i_ld_start_thickness = 5;
 i_ld_end_thickness = 6;
 i_ld_turn_bias = 7;
-
-
 
 // colors
 c_aluminum = "LightGrey";

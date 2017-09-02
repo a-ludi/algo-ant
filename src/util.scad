@@ -271,3 +271,15 @@ module joint_axle_with_bolt(length) {
         }
     }
 }
+
+function defaults(values, defaults) =
+    [for (i = [0 : len(values) - 1])
+        values[i]
+            ? values[i]
+            : defaults[i]];
+
+function set_at(vector, idx, value) =
+    [for (i = [0 : len(vector) - 1])
+        i == idx
+            ? value
+            : vector[i]];
