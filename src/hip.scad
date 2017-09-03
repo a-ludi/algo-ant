@@ -36,7 +36,7 @@ module hip(hip_descriptor, adjecent_leg_part) {
 
         hip_axle(internal_hip_descriptor);
 
-        if (has_rpi)
+        if (has_rpi && !hide_circuits)
             hip_rpi(internal_hip_descriptor);
 
         // leg

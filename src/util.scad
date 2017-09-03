@@ -241,10 +241,10 @@ module warn(text) {
 
 module tendon_insertion(length) {
     if (!hide_tendon_insertion)
-        tube(
+        cylinder(
             h=length,
-            r_out=tendon_insertion_diameter_out/2,
-            r_in=tendon_insertion_diameter_in/2,
+            r=tendon_insertion_diameter_out/2,
+            //r_in=tendon_insertion_diameter_in/2,
             center=true
         );
 }
@@ -283,3 +283,20 @@ function set_at(vector, idx, value) =
         i == idx
             ? value
             : vector[i]];
+
+module layout_array(offset, n_x=undef, n_y=undef) {
+    modulus = n_x > 0
+        ? n_x
+        : n_y;
+    internal_offset = n_x > 0
+        ? offset
+        : [offset[1], offset[0]];
+
+    for(i = [0: $children - 1])
+        let(
+            j = i%modulus,
+            k = (i - i%modulus)/modulus
+        )
+            translate([j*internal_offset[0], k*internal_offset[1], 0])
+                children(j + k*modulus);
+}

@@ -9,15 +9,26 @@ FRONT = X;
 BACK = -X;
 LEFT = Y;
 RIGHT = -Y;
-UP = Z;
-DOWN = Z;
+TOP = Z;
+BOTTOM = -Z;
+DIN_A0 = [841, 1189]*mm;
+DIN_A1 = [594, 841]*mm;
+DIN_A2 = [420, 594]*mm;
+DIN_A3 = [297, 420]*mm;
+DIN_A4 = [210, 297]*mm;
+DIN_A5 = [148, 210]*mm;
+DIN_A6 = [105, 148]*mm;
+DIN_A7 = [74, 105]*mm;
+DIN_A8 = [52, 74]*mm;
+DIN_A9 = [37, 52]*mm;
 
 // controlling the output
+view_mode = "layout";
 hide_servos = false;
 hide_circuits = false;
 hide_axles = false;
 hide_tendon_insertion = false;
-hide_covers = true;
+hide_covers = false;
 
 // dimensions
 eps = 0.1*mm;
@@ -37,6 +48,8 @@ tendon_insertion_diameter_out = tendon_insertion_diameter_in + 0.45*mm;
 single_center_link_threshold = 6*board_thickness;
 skeleton_frame_thickness = 7*mm;
 clearance_margin = 1*mm;
+layout_size = DIN_A4;
+layout_margin = 5*mm;
 
 front_hip_descriptor = [
     undef, // mount_diameter
@@ -78,7 +91,7 @@ leg_part_descriptor_joint = [
     27*mm, // servo_joint_distance
     30*mm, // start_thickness
     30*mm, // end_thickness
-    10 // turn_bias
+    0 // turn_bias
 ];
 leg_part_descriptor_upper = [
     80*mm, // effective_length
@@ -136,5 +149,6 @@ c_circuit = "DarkOliveGreen";
 c_steel = "LightSteelBlue";
 c_board = "BurlyWood";
 c_glass = [0.8, 0.8, 0.8, 0.3];
+c_marker = [1, 1, 0, 0.3];
 c_servo = "Blue";
 c_servo_horn = "LightCyan";
