@@ -23,16 +23,16 @@ DIN_A8 = [52, 74]*mm;
 DIN_A9 = [37, 52]*mm;
 
 // controlling the output
-view_mode = "layout";
+view_mode = "assembled"; // assembled, layout, milling_layout
 hide_servos = false;
 hide_circuits = false;
 hide_axles = false;
 hide_tendon_insertion = false;
-hide_covers = false;
+hide_covers = true;
 
 // dimensions
 eps = 0.1*mm;
-board_thickness = 1.5*mm;
+board_thickness = 2*mm;
 joint_axle_screw_diameter = M3;
 joint_axle_diameter_in = 3*mm;
 joint_axle_diameter_out = joint_axle_diameter_in + 0.45*mm;
@@ -45,11 +45,12 @@ rpi_height = 1.5*mm;
 tendon_insertion_diameter_hole = 0.8*mm;
 tendon_insertion_diameter_in = 3*mm;
 tendon_insertion_diameter_out = tendon_insertion_diameter_in + 0.45*mm;
-single_center_link_threshold = 6*board_thickness;
+single_center_link_threshold = 8*board_thickness;
 skeleton_frame_thickness = 7*mm;
 clearance_margin = 1*mm;
-layout_size = DIN_A4;
+base_board_size = DIN_A4;
 layout_margin = 5*mm;
+milling_retainer_width = 0.5*mm;
 
 front_hip_descriptor = [
     undef, // mount_diameter

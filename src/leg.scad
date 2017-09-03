@@ -9,46 +9,132 @@ module leg(turn) {
 }
 
 module leg_milling_layout(leg_part_descriptor) {
-}
-
-module leg_layout(leg_part_descriptors) {
-    color(c_marker)
-        translate((-board_thickness + eps)*Z)
+    color(c_board) {
+        difference() {
             cube([
-                DIN_A4[0],
-                DIN_A4[1],
+                base_board_size[0],
+                base_board_size[1],
                 board_thickness
             ]);
 
-    leg_part_layout(leg_part_descriptor_upper);
-    leg_part_layout_bounding_box(leg_part_descriptor_upper);
-    translate(leg_part_layout_bounding_box_size(leg_part_descriptor_upper)[0]*X) {
-        leg_part_layout(leg_part_descriptor_lower);
-        leg_part_layout_bounding_box(leg_part_descriptor_lower);
+            translate(-eps*Z)
+                minkowski() {
+                    leg_layout(hull_only=true);
+                    cylinder(2*eps, r=layout_margin/4);
+                }
+        }
+
+        leg_layout(hull_only=false);
+        leg_milling_layout_retainers();
     }
-
-    translate([
-        leg_part_layout_bounding_box_size(leg_part_descriptor_middle)[1],
-        leg_part_layout_bounding_box_size(leg_part_descriptor_upper)[1],
-        0
-    ])
-        rotate(90*Z) {
-            leg_part_layout(leg_part_descriptor_middle);
-            leg_part_layout_bounding_box(leg_part_descriptor_middle);
-        }
-
-    translate([
-        leg_part_layout_bounding_box_size(leg_part_descriptor_upper)[0] + leg_part_layout_bounding_box_size(leg_part_descriptor_joint)[1],
-        leg_part_layout_bounding_box_size(leg_part_descriptor_lower)[1],
-        0
-    ])
-        rotate(90*Z) {
-            leg_part_layout(leg_part_descriptor_joint);
-            leg_part_layout_bounding_box(leg_part_descriptor_joint);
-        }
 }
 
-module leg_part_layout(leg_part_descriptor) {
+module leg_milling_layout_retainers() {
+    translate([0, 40*mm, 0])
+        milling_retainer(80*mm);
+    translate([0, 85*mm, 0])
+        milling_retainer(80*mm);
+    translate([70*mm, 5*mm, 0])
+        milling_retainer(65*mm);
+    translate([95*mm, 50*mm, 0])
+        milling_retainer(40*mm);
+    translate([110*mm, 50*mm, 0])
+        rotate(90*Z)
+            milling_retainer(10*mm);
+    translate([125*mm, 50*mm, 0])
+        rotate(90*Z)
+            milling_retainer(10*mm);
+    translate([135*mm, 15*mm, 0])
+        milling_retainer(65*mm);
+    translate([135*mm, 60*mm, 0])
+        milling_retainer(40*mm);
+    translate([175*mm, 35*mm, 0])
+        milling_retainer(25*mm);
+
+    translate([160*mm, 80*mm, 0])
+        rotate(90*Z)
+            milling_retainer(40*mm);
+    translate([160*mm, 145*mm, 0])
+        rotate(90*Z)
+            milling_retainer(40*mm);
+    translate([197*mm, 85*mm, 0])
+        milling_retainer(5*mm);
+    translate([197*mm, 105*mm, 0])
+        milling_retainer(5*mm);
+    translate([197*mm, 132*mm, 0])
+        milling_retainer(5*mm);
+    translate([197*mm, 168*mm, 0])
+        milling_retainer(5*mm);
+    translate([197*mm, 203*mm, 0])
+        milling_retainer(5*mm);
+    translate([175*mm, 190*mm, 0])
+        milling_retainer(5*mm);
+    translate([175*mm, 210*mm, 0])
+        milling_retainer(5*mm);
+    translate([75*mm, 97*mm, 0])
+        milling_retainer(60*mm);
+    translate([20*mm, 125*mm, 0])
+        milling_retainer(35*mm);
+    translate([20*mm, 135*mm, 0])
+        milling_retainer(35*mm);
+    translate([75*mm, 135*mm, 0])
+        milling_retainer(5*mm);
+    translate([20*mm, 180*mm, 0])
+        milling_retainer(110*mm);
+    translate([20*mm, 200*mm, 0])
+        milling_retainer(30*mm);
+}
+
+module milling_retainer(length, center=false) {
+    translate((center ? board_thickness/2 : 0)*Z)
+        cube([length, milling_retainer_width, board_thickness], center=center);
+}
+
+module leg_layout(leg_part_descriptors, show_base_board=false, show_bounding_boxes=false, hull_only=false) {
+    layout_size = [
+        leg_part_layout_bounding_box_size(leg_part_descriptor_upper)[0] +
+            leg_part_layout_bounding_box_size(leg_part_descriptor_lower)[0],
+        leg_part_layout_bounding_box_size(leg_part_descriptor_lower)[1] +
+            leg_part_layout_bounding_box_size(leg_part_descriptor_joint)[0],
+    ];
+
+    if (show_base_board)
+        color(c_marker)
+            translate((-board_thickness + eps)*Z)
+                cube([
+                    base_board_size[0],
+                    base_board_size[1],
+                    board_thickness
+                ]);
+
+    leg_part_layout(leg_part_descriptor_upper, show_bounding_box=show_bounding_boxes, hull_only=hull_only);
+    translate(leg_part_layout_bounding_box_size(leg_part_descriptor_upper)[0]*X)
+        leg_part_layout(leg_part_descriptor_lower, show_bounding_box=show_bounding_boxes, hull_only=hull_only);
+
+    translate([
+        layout_size[0] - leg_part_layout_bounding_box_size(leg_part_descriptor_joint)[1],
+        leg_part_layout_bounding_box_size(leg_part_descriptor_middle)[1] + leg_part_layout_bounding_box_size(leg_part_descriptor_lower)[1],
+        0
+    ])
+        rotate(180*Z)
+            leg_part_layout(leg_part_descriptor_middle, show_bounding_box=show_bounding_boxes, hull_only=hull_only);
+
+    translate([
+        layout_size[0],
+        leg_part_layout_bounding_box_size(leg_part_descriptor_lower)[1],
+        0
+    ]) {
+        rotate(90*Z)
+            leg_part_layout(leg_part_descriptor_joint, show_bounding_box=show_bounding_boxes, hull_only=hull_only);
+    }
+
+    echo(
+        layout_width = layout_size[0],
+        layout_height = layout_size[1]
+    );
+}
+
+module leg_part_layout(leg_part_descriptor, show_bounding_box, hull_only) {
     effective_length = leg_part_descriptor[i_ld_effective_length];
     start_thickness = leg_part_descriptor[i_ld_start_thickness];
     end_thickness = leg_part_descriptor[i_ld_end_thickness];
@@ -63,10 +149,17 @@ module leg_part_layout(leg_part_descriptor) {
             (effective_length + start_thickness)/2 + layout_margin/2,
             board_thickness/2
         ]) {
-            leg_part_skeleton_sides_single(leg_part_descriptor, FRONT);
+            if (hull_only)
+                hull() leg_part_skeleton_sides_single(leg_part_descriptor, FRONT);
+            else
+                leg_part_skeleton_sides_single(leg_part_descriptor, FRONT);
+
             translate((start_thickness + layout_margin)*X) {
                 rotate(180*Z)
-                    leg_part_skeleton_sides_single(leg_part_descriptor, BACK);
+                    if (hull_only)
+                        hull() leg_part_skeleton_sides_single(leg_part_descriptor, BACK);
+                    else
+                        leg_part_skeleton_sides_single(leg_part_descriptor, BACK);
 
                 translate([
                     inner_width/2 + start_thickness/2 + layout_margin,
@@ -77,12 +170,17 @@ module leg_part_layout(leg_part_descriptor) {
                 ])
                     for (i = [0 : len(sides_set) - 1])
                         translate(i*(inner_width + layout_margin)*X)
-                            leg_part_skeleton_center_link_single(leg_part_descriptor, sides_set[i]);
+                            if (hull_only)
+                                hull() leg_part_skeleton_center_link_single(leg_part_descriptor, sides_set[i]);
+                            else
+                                leg_part_skeleton_center_link_single(leg_part_descriptor, sides_set[i]);
+
             }
         }
     }
 
-    leg_part_layout_bounding_box(leg_part_descriptor);
+    if (show_bounding_box)
+        leg_part_layout_bounding_box(leg_part_descriptor);
 }
 
 module leg_part_layout_bounding_box(leg_part_descriptor) {
@@ -311,7 +409,7 @@ module leg_part_skeleton_center_link_servo_cutting(leg_part_descriptor, link_len
     end_thickness = leg_part_descriptor[i_ld_end_thickness];
 
     difference() {
-        leg_part_servo_cutting(leg_part_descriptor);
+        leg_part_servo_cutting(leg_part_descriptor, for_center_link=true);
 
         if (joint_type == "cardan")
             translate([
@@ -399,7 +497,7 @@ module leg_part_axle(leg_part_descriptor) {
             joint_axle_with_bolt(inner_width);
 }
 
-module leg_part_servo_cutting(leg_part_descriptor) {
+module leg_part_servo_cutting(leg_part_descriptor, for_center_link=false) {
     effective_length = leg_part_descriptor[i_ld_effective_length];
     end_thickness = leg_part_descriptor[i_ld_end_thickness];
     inner_width = leg_part_descriptor[i_ld_inner_width];
@@ -413,19 +511,21 @@ module leg_part_servo_cutting(leg_part_descriptor) {
     servo_axle_height = 31*mm;
     servo_mount_height = 16*mm;
 
+    center_link_correction = for_center_link ? eps : 0;
+
     translate([-inner_width/2, effective_length/2 - servo_joint_distance, 0])
         rotate([180, 0, 0]) rotate([0, 90, 0]) {
             // upper part + maintenance
             let(
                 width = servo_body_width + 2*clearance_margin,
                 length = servo_mount_length + 2*clearance_margin,
-                height = servo_axle_height - servo_mount_height + 2*clearance_margin,
+                height = servo_axle_height - servo_mount_height + 2*clearance_margin + center_link_correction,
                 overlap = clearance_margin/2 + eps
             ) {
-                translate(-[width/2, servo_body_width, 0]) {
+                translate(-[width/2, servo_body_width, center_link_correction]) {
                     cube([width, length, height]);
-                    translate([-inner_width + overlap, 0, -eps/2])
-                        cube([inner_width + overlap, length, inner_width+eps]);
+                    translate([-inner_width + overlap, 0, center_link_correction/2])
+                        cube([inner_width + overlap, length, inner_width + center_link_correction]);
                 }
             }
 

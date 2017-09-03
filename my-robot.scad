@@ -34,12 +34,12 @@ if (view_mode == "assembled") {
             }
 } else if (view_mode == "layout") {
     $fa = 5;
-    $fs = 0.25;
+    $fs = 0.5;
 
-    leg_layout();
+    leg_layout(show_base_board=true, show_bounding_boxes=false);
 } else if (view_mode == "milling_layout") {
-    $fa = 30;
-    $fs = 2.5;
+    $fa = 2.5;
+    $fs = 0.25;
 
     leg_milling_layout();
 } else {
