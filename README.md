@@ -26,6 +26,16 @@ Forces
 - Effective Force at Foot: ~0.250 kg
 
 
+Materials
+---------
+
+- Board Material
+	- MDF (600 kg/m³–1000 kg/m³)
+	- Acrylglas (1180 bis 1190 kg/m³)
+- Axles & Tendon Insertions
+	- Brass Tube (3 mm)
+
+
 Parts Needed
 ------------
 
