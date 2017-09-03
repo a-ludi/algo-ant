@@ -77,6 +77,9 @@ module hip_skeleton(hip_descriptor) {
     color(c_board) {
         hip_sides(hip_descriptor);
         hip_sides_link(hip_descriptor);
+
+        if (!hide_covers)
+            hip_sides_cover(hip_descriptor);
     }
 }
 
@@ -141,6 +144,37 @@ module hip_top_cutting(hip_descriptor) {
                 length - 1.5*skeleton_frame_thickness,
                 board_thickness + eps
             ], r=skeleton_frame_thickness/2, center=true);
+    }
+}
+
+module hip_sides_cover(hip_descriptor) {
+    inner_height = hip_descriptor[i_hd_inner_height];
+    mount_diameter = hip_descriptor[i_hd_mount_diameter];
+    width = hip_descriptor[i_hd_width];
+    length = hip_descriptor[i_hd_length];
+    capped_end = hip_descriptor[i_hd_capped_end];
+
+    servo_mount_height = 16*mm;
+
+    capped_end_length = capped_end_length(mount_diameter, servo_mount_height);
+    c_width = capped_end
+        ? width/2 + capped_end_length
+        : width;
+
+    translate((inner_height + board_thickness)/2*Z) {
+        translate(
+            -(length/2 + skeleton_frame_thickness/4)*Y +
+            (capped_end
+                ? -(c_width/2 - capped_end_length)*capped_end
+                : NULL) +
+            board_thickness*Z
+        )
+            rounded_board([
+                c_width - skeleton_frame_thickness/2,
+                length - 1*skeleton_frame_thickness,
+                board_thickness + eps
+            ], r=3/4*skeleton_frame_thickness, center=true);
+            // TODO pegs to fixate cover
     }
 }
 

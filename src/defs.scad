@@ -17,6 +17,7 @@ hide_servos = false;
 hide_circuits = false;
 hide_axles = false;
 hide_tendon_insertion = false;
+hide_covers = true;
 
 // dimensions
 eps = 0.1*mm;
