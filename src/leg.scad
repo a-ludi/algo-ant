@@ -1,17 +1,13 @@
 include <defs.scad>;
 include <util.scad>;
 
-module leg(turn) {
-    leg_part(leg_part_descriptor_joint, turn[0])
-        leg_part(leg_part_descriptor_upper, turn[1])
-            leg_part(leg_part_descriptor_middle, turn[2])
-                leg_part(leg_part_descriptor_lower, turn[3]);
-}
+module leg_part(leg_part_descriptors, turn) {
+    current_leg_part_descriptor = generate_leg_part_descriptor(leg_part_descriptors);
 
-    effective_length = leg_part_descriptor[i_ld_effective_length];
-    joint_type = leg_part_descriptor[i_ld_joint_type];
-    start_thickness = leg_part_descriptor[i_ld_start_thickness];
-    turn_bias = leg_part_descriptor[i_ld_turn_bias];
+    effective_length = current_leg_part_descriptor[i_ld_effective_length];
+    joint_type = current_leg_part_descriptor[i_ld_joint_type];
+    start_thickness = current_leg_part_descriptor[i_ld_start_thickness];
+    turn_bias = current_leg_part_descriptor[i_ld_turn_bias];
 
     rotate_axis = joint_type == "cardan"
         ? Z
@@ -20,15 +16,41 @@ module leg(turn) {
         ? start_thickness/2
         : 0;
 
-    rotate(-(turn_bias + turn)*rotate_axis) {
+    rotate(-(turn_bias + turn[0])*rotate_axis) {
         translate(inline_shift*Y) {
-            leg_part_content(leg_part_descriptor);
+            leg_part_content(current_leg_part_descriptor);
 
-            translate(effective_length*Y)
-                children();
+            if (len(leg_part_descriptors) > 1)
+                translate(effective_length*Y)
+                    leg_part(tail(leg_part_descriptors), tail(turn));
         }
     }
 }
+
+function generate_leg_part_descriptor(leg_part_descriptors) =
+    len(leg_part_descriptors) > 1
+        ? let(
+            adjecent_leg_part = generate_leg_part_descriptor(tail(leg_part_descriptors)),
+            alp_effective_length = adjecent_leg_part[i_ld_effective_length],
+            alp_has_servo = adjecent_leg_part[i_ld_has_servo],
+            alp_inner_width = adjecent_leg_part[i_ld_inner_width],
+            alp_joint_type = adjecent_leg_part[i_ld_joint_type],
+            alp_servo_joint_distance = adjecent_leg_part[i_ld_servo_joint_distance],
+            alp_start_thickness = adjecent_leg_part[i_ld_start_thickness],
+            alp_end_thickness = adjecent_leg_part[i_ld_end_thickness],
+            alp_turn_bias = adjecent_leg_part[i_ld_turn_bias]
+        )
+            defaults([
+                undef, // effective_length
+                undef, // has_servo
+                alp_inner_width + 2*board_thickness + clearance_margin/2, // inner_width
+                undef, // joint_type
+                undef, // servo_joint_distance
+                undef, // start_thickness
+                alp_start_thickness, // end_thickness
+                undef // turn_bias
+            ], leg_part_descriptors[0])
+        : leg_part_descriptors[0];
 
 module leg_part_content(leg_part_descriptor) {
     effective_length = leg_part_descriptor[i_ld_effective_length];
@@ -373,7 +395,7 @@ module leg_part_servo_cutting(leg_part_descriptor, for_center_link=false) {
         }
 }
 
-module leg_milling_layout(leg_part_descriptor) {
+module leg_milling_layout(leg_part_descriptors) {
     color(c_board) {
         difference() {
             cube([
@@ -384,12 +406,12 @@ module leg_milling_layout(leg_part_descriptor) {
 
             translate(-eps*Z)
                 minkowski() {
-                    leg_layout(hull_only=true);
+                    leg_layout(leg_part_descriptors, hull_only=true);
                     cylinder(2*eps, r=layout_margin/4);
                 }
         }
 
-        leg_layout(hull_only=false);
+        leg_layout(leg_part_descriptors, hull_only=false);
         leg_milling_layout_retainers();
     }
 }
@@ -456,6 +478,11 @@ module milling_retainer(length, center=false) {
 }
 
 module leg_layout(leg_part_descriptors, show_base_board=false, show_bounding_boxes=false, hull_only=false) {
+    leg_part_descriptor_joint = generate_leg_part_descriptor(leg_part_descriptors);
+    leg_part_descriptor_upper = generate_leg_part_descriptor(tail(leg_part_descriptors, n=1));
+    leg_part_descriptor_middle = generate_leg_part_descriptor(tail(leg_part_descriptors, n=2));
+    leg_part_descriptor_lower = generate_leg_part_descriptor(tail(leg_part_descriptors, n=3));
+
     layout_size = [
         leg_part_layout_bounding_box_size(leg_part_descriptor_upper)[0] +
             leg_part_layout_bounding_box_size(leg_part_descriptor_lower)[0],

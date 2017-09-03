@@ -219,7 +219,6 @@ module my_bolt(d, l) {
         bolt(d, l + my_bolt_head_thickness(d));
 }
 
-
 function my_flat_nut_thickness(d) = 0.8*d;
 
 module my_flat_nut(d) {
@@ -272,6 +271,8 @@ module joint_axle_with_bolt(length) {
     }
 }
 
+function tail(array, n=1) = [for (i = [0 : len(array) - 1]) if (i > n - 1) array[i]];
+
 function defaults(values, defaults) =
     [for (i = [0 : len(values) - 1])
         values[i]
@@ -292,8 +293,8 @@ module layout_array(offset, n_x=undef, n_y=undef) {
         ? offset
         : [offset[1], offset[0]];
 
-    for(i = [0: $children - 1])
-        let(
+    for (i = [0: $children - 1])
+        let (
             j = i%modulus,
             k = (i - i%modulus)/modulus
         )

@@ -2,19 +2,7 @@ include <defs.scad>;
 include <util.scad>;
 
 module hip(hip_descriptor, adjecent_leg_part) {
-    alp_inner_width = adjecent_leg_part[i_ld_inner_width];
-    alp_end_thickness = adjecent_leg_part[i_ld_end_thickness];
-
-    internal_hip_descriptor = defaults([
-        alp_inner_width + 2*board_thickness, // mount_diameter
-        alp_end_thickness + clearance_margin, // inner_height
-        undef, // width
-        undef, // length
-        undef, // servo_joint_distance
-        undef, // has_servo_driver
-        undef, // capped_end
-        undef // has_rpi
-    ], hip_descriptor);
+    internal_hip_descriptor = generate_hip_descriptor(hip_descriptor, adjecent_leg_part);
 
     mount_diameter = internal_hip_descriptor[i_hd_mount_diameter];
     inner_height = internal_hip_descriptor[i_hd_inner_height];
@@ -49,6 +37,22 @@ module hip(hip_descriptor, adjecent_leg_part) {
         translate((width)*BACK)
             children(1);
 }
+
+function generate_hip_descriptor(hip_descriptor, adjecent_leg_part) =
+    let(
+        alp_inner_width = adjecent_leg_part[i_ld_inner_width],
+        alp_end_thickness = adjecent_leg_part[i_ld_end_thickness]
+    )
+        defaults([
+            alp_inner_width + 2*board_thickness, // mount_diameter
+            alp_end_thickness + clearance_margin/2, // inner_height
+            undef, // width
+            undef, // length
+            undef, // servo_joint_distance
+            undef, // has_servo_driver
+            undef, // capped_end
+            undef // has_rpi
+        ], hip_descriptor);
 
 module hip_rpi(hip_descriptor) {
     mount_diameter = hip_descriptor[i_hd_mount_diameter];

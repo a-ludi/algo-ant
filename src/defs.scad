@@ -83,41 +83,44 @@ back_hip_descriptor = [
     false // has_rpi
 ];
 
-leg_base_inner_width = 2*13.3*mm;
+/**
+ * Length such that the servo horns are approximately centered.
+ */
+leg_base_inner_width = 2*13.3*mm - 3.5*board_thickness;
 leg_part_descriptor_joint = [
     37*mm, // effective_length
     true, // has_servo
-    leg_base_inner_width + 2*board_thickness + 1*clearance_margin, // inner_width
+    undef, // inner_width
     "cardan", // joint_type
     27*mm, // servo_joint_distance
     30*mm, // start_thickness
-    30*mm, // end_thickness
+    undef, // end_thickness
     0 // turn_bias
 ];
 leg_part_descriptor_upper = [
     80*mm, // effective_length
     true, // has_servo
-    leg_base_inner_width + 0.5*clearance_margin, // inner_width
+    undef, // inner_width
     "hinge", // joint_type
     35*mm, // servo_joint_distance
     30*mm, // start_thickness
-    20*mm, // end_thickness
+    undef, // end_thickness
     -30 // turn_bias
 ];
 leg_part_descriptor_middle = [
     100*mm, // effective_length
     true, // has_servo
-    leg_base_inner_width - 2*board_thickness, // inner_width
+    undef, // inner_width
     "hinge", // joint_type
     40*mm, // servo_joint_distance
     20*mm, // start_thickness
-    15*mm, // end_thickness
+    undef, // end_thickness
     90 // turn_bias
 ];
 leg_part_descriptor_lower = [
     60*mm, // effective_length
     false, // has_servo
-    leg_base_inner_width - 4*board_thickness - 0.5*clearance_margin, // inner_width
+    leg_base_inner_width, // inner_width
     "hinge", // joint_type
     0*mm, // servo_joint_distance
     15*mm, // start_thickness
