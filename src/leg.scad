@@ -422,20 +422,20 @@ module leg_milling_layout_retainers() {
     translate([0, 85*mm, 0])
         milling_retainer(80*mm);
     translate([70*mm, 5*mm, 0])
-        milling_retainer(65*mm);
+        milling_retainer(68*mm);
     translate([95*mm, 50*mm, 0])
-        milling_retainer(40*mm);
+        milling_retainer(45*mm);
     translate([110*mm, 50*mm, 0])
         rotate(90*Z)
             milling_retainer(10*mm);
     translate([125*mm, 50*mm, 0])
         rotate(90*Z)
             milling_retainer(10*mm);
-    translate([135*mm, 15*mm, 0])
+    translate([138*mm, 15*mm, 0])
         milling_retainer(65*mm);
-    translate([135*mm, 60*mm, 0])
+    translate([137*mm, 60*mm, 0])
         milling_retainer(40*mm);
-    translate([175*mm, 35*mm, 0])
+    translate([177*mm, 35*mm, 0])
         milling_retainer(25*mm);
 
     translate([160*mm, 80*mm, 0])
@@ -443,29 +443,27 @@ module leg_milling_layout_retainers() {
             milling_retainer(40*mm);
     translate([160*mm, 145*mm, 0])
         rotate(90*Z)
-            milling_retainer(40*mm);
+            milling_retainer(45*mm);
     translate([197*mm, 85*mm, 0])
-        milling_retainer(5*mm);
+        milling_retainer(8*mm);
     translate([197*mm, 105*mm, 0])
-        milling_retainer(5*mm);
+        milling_retainer(8*mm);
     translate([197*mm, 132*mm, 0])
+        milling_retainer(8*mm);
+    translate([197*mm, 169*mm, 0])
+        milling_retainer(8*mm);
+    translate([197*mm, 207*mm, 0])
+        milling_retainer(8*mm);
+    translate([175*mm, 195*mm, 0])
         milling_retainer(5*mm);
-    translate([197*mm, 168*mm, 0])
-        milling_retainer(5*mm);
-    translate([197*mm, 203*mm, 0])
-        milling_retainer(5*mm);
-    translate([175*mm, 190*mm, 0])
-        milling_retainer(5*mm);
-    translate([175*mm, 210*mm, 0])
+    translate([175*mm, 215*mm, 0])
         milling_retainer(5*mm);
     translate([75*mm, 97*mm, 0])
         milling_retainer(60*mm);
-    translate([20*mm, 125*mm, 0])
+    translate([45*mm, 125*mm, 0])
         milling_retainer(35*mm);
-    translate([20*mm, 135*mm, 0])
+    translate([45*mm, 135*mm, 0])
         milling_retainer(35*mm);
-    translate([75*mm, 135*mm, 0])
-        milling_retainer(5*mm);
     translate([20*mm, 180*mm, 0])
         milling_retainer(110*mm);
     translate([20*mm, 200*mm, 0])
